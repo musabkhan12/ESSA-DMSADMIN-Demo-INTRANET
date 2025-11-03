@@ -635,7 +635,7 @@ const handleDeleteUser=async(userId:any,groupName:any,item:any)=>{
                   
                       marginTop:"70px",
                       padding:"20px",
-                      border:"2px solid #54ade0",
+                      border:"2px solid #2c9942",
                       borderRadius:"20px",
                       background:"#fff",
                       clear:"both",

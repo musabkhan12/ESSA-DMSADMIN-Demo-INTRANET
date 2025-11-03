@@ -321,7 +321,7 @@ const Entity = () => {
         <div className={styles.argform}>
           <div className='row'>
             <div className='col-md-7 pt-0'>
-            <div className='page-title fw-bold mb-1 font-20'>Entity</div>
+            <div className='page-title fw-bold mb-1 font-20'>Site Collection - (Location)</div>
             </div>
             <div className='col-md-5'>
             <div className="padd-right1 mt-0">
@@ -430,7 +430,7 @@ const Entity = () => {
                   <th className="" >
                   
                     <div className="pb-0" >
-                      <span >Title</span> &nbsp;
+                      <span >site collection</span> &nbsp;
                       <span className="Sorting" onClick={() => handleSortChange('Title')}>
                         <FontAwesomeIcon icon={faSort} /> 
                       </span>
@@ -588,7 +588,7 @@ const Entity = () => {
         <div className={styles.argform}>
           <div style={{marginBottom:"20px"}} className='row'>
             <div className='col-md-7'>
-            <div className='page-title fw-bold mb-1 font-20'>Create Entity</div>
+            <div className='page-title fw-bold mb-1 font-20'>Create Site Collection - (Location)</div>
             </div>
             <div className='col-md-5'>
              <div className='padd-right1 mt-0'>
