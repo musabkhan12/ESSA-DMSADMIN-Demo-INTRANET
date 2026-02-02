@@ -175,7 +175,7 @@ const columns: IColumn[] = [
     minWidth: 100,
     maxWidth: 120,
     onRender: (item: any) => (
-      <PrimaryButton text="Manage" style={{backgroundColor:"#2c9942" , border:"none"}} onClick={() => openManageModal(item)} />
+      <PrimaryButton text="Manage" style={{backgroundColor:"#7fc4de" , border:"none"}} onClick={() => openManageModal(item)} />
     ),
   },
 ];
@@ -597,7 +597,7 @@ const columns: IColumn[] = [
                 </span>
                 <PrimaryButton
                   text="Add"
-                  style={{backgroundColor:"#2c9942" , border:"none"}  }
+                  style={{backgroundColor:"#7fc4de" , border:"none"}  }
                   onClick={async () => {
                     try {
                       await sp.web.siteGroups

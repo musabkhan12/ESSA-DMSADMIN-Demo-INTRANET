@@ -157,12 +157,12 @@ body{
     position: relative;
   }
   .sidebar .navlinks li:hover a .linkname{ 
-    color: #2c9942;
+    color: #7fc4de;
     // font-size: 15.2px;
   }
 
   .selected {
-    background-color: #2c9942; /* Highlight color */
+    background-color: #7fc4de; /* Highlight color */
     color:#ffff !important;
   }
   .selected2{
@@ -243,11 +243,11 @@ body{
   }
   .sidebar .navlinks li .submenu a:hover{
     opacity: 1;
-    color: #2c9942;
+    color: #7fc4de;
   }
   .sidebar .navlinks li .submenu a:hover img{
     opacity: 1;
-    color: #2c9942;
+    color: #7fc4de;
   }
   .sidebar.close .navlinks li .submenu{
   position: absolute;
@@ -635,7 +635,7 @@ width: 98%;;
  }
 .DmsAdminForm {
   background-color: #fff;
-  border: thin solid #2c9942;
+  border: thin solid #7fc4de;
   border-radius: 20px;
   /* margin: 0 auto; */
   /* margin-top: 29px; */
@@ -654,7 +654,7 @@ width: 98%;;
   margin: 0 auto;
   border-style: solid;
     border-width: thin;
-    border-color: #2c9942;
+    border-color: #7fc4de;
     border-radius: 20px;
     background-color: white;
     overflow: auto;
@@ -664,26 +664,26 @@ width: 98%;;
   margin: 0 auto;
   border-style: solid;
     border-width: thin;
-    border-color: #2c9942;
+    border-color: #7fc4de;
     border-radius: 20px;
     background-color: white;
   margin-top: 16px;
 }
 .hirarchy1{
   background-color: #fff;
-  /* border: thin solid #2c9942; */
+  /* border: thin solid #7fc4de; */
   border-radius: 20px;
   width: 100%;
 }
 .formcontainer{
   background-color: #fff;
-  /* border: thin solid #2c9942; */
+  /* border: thin solid #7fc4de; */
   border-radius: 20px;
   width: 100%;    padding: 7px 0px;
 }
 .formcontainer1{
   background-color: #fff;
-  /* border: thin solid #2c9942; */
+  /* border: thin solid #7fc4de; */
   border-radius: 20px;
   width: 100%;  padding: 7px 0px;
 }
@@ -852,7 +852,7 @@ cursor: pointer;
 }
 
 .backbuttonform1{
- background-color:  #2c9942;
+ background-color:  #7fc4de;
  display: inline-block;
  margin-left: 10px;
 border: none;
@@ -869,7 +869,7 @@ cursor: pointer; margin-bottom: 15px;
 }
 .addbuttonargform{
   display: flex;
-background-color: #2c9942;
+background-color: #7fc4de;
 margin-left: 10px;
 border: none;
 color: white;
@@ -1458,7 +1458,7 @@ color: black;
 }
 .indexdesign{
   background: #d2effa !important;
-    color: #2c9942 !important;
+    color: #7fc4de !important;
     width: 28px !important;
     height:28 !important;
     font-size: 16px !important;

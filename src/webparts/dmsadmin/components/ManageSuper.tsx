@@ -494,7 +494,7 @@ export const ManageSuper = (props:any) => {
                       
                       marginTop:"10px",
                       padding:"20px",
-                      border:"2px solid #2c9942",
+                      border:"2px solid #7fc4de",
                       borderRadius:"10px",
                       background:"#fff",
 

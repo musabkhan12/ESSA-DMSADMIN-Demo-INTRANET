@@ -492,22 +492,22 @@ const [filters, setFilters] = React.useState({
   styles={{
     control: (provided, state) => ({
       ...provided,
-      borderColor: "#2c9942", // border color
-      boxShadow: state.isFocused ? "0 0 0 1px #2c9942" : "none",
+      borderColor: "#7fc4de", // border color
+      boxShadow: state.isFocused ? "0 0 0 1px #7fc4de" : "none",
       "&:hover": {
-        borderColor: "#2c9942",
+        borderColor: "#7fc4de",
       },
     }),
     option: (provided, state) => ({
       ...provided,
       backgroundColor: state.isFocused
-        ? "#2c9942" // hover
+        ? "#7fc4de" // hover
         : state.isSelected
-        ? "#2c9942" // when clicked/selected
+        ? "#7fc4de" // when clicked/selected
         : "white", // default (no background)
       color: state.isFocused || state.isSelected ? "white" : "black",
       "&:active": {
-        backgroundColor: "#2c9942",
+        backgroundColor: "#7fc4de",
       },
     }),
     singleValue: (provided) => ({
@@ -516,7 +516,7 @@ const [filters, setFilters] = React.useState({
     }),
     dropdownIndicator: (provided) => ({
       ...provided,
-      color: "#2c9942", // dropdown arrow color
+      color: "#7fc4de", // dropdown arrow color
     }),
     indicatorSeparator: () => ({
       display: "none", // hide separator line

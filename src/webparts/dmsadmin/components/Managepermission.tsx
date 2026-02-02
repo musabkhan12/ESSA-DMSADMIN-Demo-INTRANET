@@ -498,7 +498,7 @@ const filteredUserData=applyFiltersAndSorting(selectedUser);
                       marginLeft:"50px",
                       marginTop:"50px",
                       padding:"20px",
-                      border:"2px solid #2c9942",
+                      border:"2px solid #7fc4de",
                       borderRadius:"20px",
                       background:"#fff",
 
@@ -809,7 +809,7 @@ const filteredUserData=applyFiltersAndSorting(selectedUser);
                     
 //                       marginTop:"10px",
 //                       padding:"20px",
-//                       border:"2px solid #2c9942",
+//                       border:"2px solid #7fc4de",
 //                       borderRadius:"10px",
 //                       background:"#fff",
 

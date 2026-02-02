@@ -14,6 +14,7 @@ import { IDmsadminProps } from './components/IDmsadminProps';
 import { getSP } from './loc/pnpjsConfig';
 // import DMSMain from './components/DMSMain';
 import DMSAdmin from './components/DMSAdminComponent';
+import Dmsadmincomponent from './components/DMSAdminComponentDemo'
 import DMSMyApproval from './components/MyApprovals';
 import TEST from './components/test';
 
@@ -30,7 +31,9 @@ export default class DmsadminWebPart extends BaseClientSideWebPart<IDmsadminWebP
     const element: React.ReactElement<IDmsadminProps> = React.createElement(
       // Dmsadmin,
       //DMSMain,
-        DMSAdmin,
+
+         DMSAdmin,
+        //Dmsadmincomponent,
       // DMSMyApproval,
       //  TEST,
       {

@@ -47,7 +47,6 @@ import "../../../CustomCss/mainCustom.scss";
 import "../../verticalSideBar/components/VerticalSidebar.scss";
 import "./dmscss";
 import "./DMSAdmincss"
-import Manageuserpermissioninonego from "./Manageuserpermissioninonego";
 import { useState , useRef , useEffect} from "react";
 
 // import {IDmsMusaibProps} from './IDmsMusaibProps'
@@ -56,7 +55,8 @@ import HorizontalNavbar from "../../horizontalNavBar/components/HorizontalNavBar
 import Devision from "./Division";
 import Department from "./Department";
 // import CreateEntity from "./CreateEntity";
-import CreateEntity from './Entity'
+// import CreateEntity from './Entity'
+import CreateEntity from './EntityDemo'
 import Select from "react-select";
 import Swal from 'sweetalert2';
 import { ManagePermission } from "./Managepermission";
@@ -65,6 +65,8 @@ import { ManageSuper } from "./ManageSuper";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { MSGraphClientV3 } from "@microsoft/sp-http";
 import ManageFolderDeligation from "./ManageFolderDeligation";
+import Manageuserpermissioninonego from "./Manageuserpermissioninonego";
+import Site from "./Site";
 interface IMyComponentProps {
 context: WebPartContext;
 }
@@ -127,12 +129,16 @@ siteUrl: string;
   const [user,setUser]=useState<any[]>([]);
   const [groups,setGroups]=useState<any[]>([]);
   const [IsSuperAdmin,setIsSuperAdmin]=useState(false);
-
+  const [siteOptions,setSiteOptions]=useState<any[]>([]);
+  const [SubsiteOptions,setSubSiteOptions]=useState<any[]>([]);
   const [toggleManagePermissionCard,setToggleManagePermissionCard]=useState("No");
+  const [selectedSiteForPermission, setSelectedSiteForPermission] = useState<any>(null);
+  const [selectedSiteForPermission2, setSelectedSubsiteForPermission] = useState<any>(null);
+
   const manageUserAndPermissionImage = require('../assets/ManageUserandPermission.png');
   const managefolderdeligation = require('../assets/ManageFolderDelegation.png');
   const managesuperadmin = require('../assets/ManageSuperAdmin.png');
-
+  // const useraceessreport = require('../assets/useraccessreport.png');
   const handleToggleCard=(event:any,name:any)=>{
     event.preventDefault();
     // alert(name)
@@ -156,6 +162,20 @@ siteUrl: string;
     // const graphClient: MSGraphClientV3 = await getGraphClient(context);
     const graphClient = await context.msGraphClientFactory.getClient("3");
     console.log( graphClient , "graphClient ")
+  
+        const gp = await getGraphClient(context);
+          debugger
+        console.log("graph client" , gp)
+        console.log("fetching groups");
+      const groups = await gp.api("/groups")
+                .filter("securityEnabled eq true") // only security groups
+                .top(999) // max 999 per request (pagination required for more)
+                .get();
+    
+            console.log(groups.value , " here are the groups"); 
+       
+           
+    
     //  let groupId = '2ff98c8a-bbff-4615-bbe9-d87f0e486e33'
      console.log(graphClient, 'graphClient initialized');
     // try {
@@ -295,27 +315,92 @@ siteUrl: string;
   }
 
 
+  // previous working code
+  // const fetchUsers=async()=>{
 
-  const fetchUsers=async()=>{
-    const user = await sp.web.siteUsers();
-    console.log("users fetch from the site",user);
-      const usersArray=user.map((user)=>(
-            {
-              id:String(user.Id),
-              value: user.Title,
-              email: user.Email,
-              label:user.Title,
-              loginName:user.LoginName
-            }
-      ))
-      console.log("site users",usersArray);
-      setUser(usersArray);
+  //   const user = await sp.web.siteUsers();
+  //   console.log("users fetch from the site",user);
+  //     const usersArray=user.map((user)=>(
+  //           {
+  //             id:String(user.Id),
+  //             value: user.Title,
+  //             email: user.Email,
+  //             label:user.Title,
+  //             loginName:user.LoginName
+  //           }
+  //     ))
+  //     console.log("site users",usersArray);
+  //     setUser(usersArray);
+  // }
+
+  const fetchUsers = async () => {
+  try {
+    // 🔹 Fetch Site Users
+    const siteUsers = await sp.web.siteUsers();
+    const usersArray = siteUsers.map((u: any) => ({
+      id: String(u.Id),
+      value: u.Title,
+      email: u.Email,
+      label: `${u.Title} (User)`,   // 👈 show type in dropdown
+      loginName: u.LoginName,
+      type: "User"
+    }));
+
+    // 🔹 Fetch AAD Security Groups via Graph
+    const gp = await getGraphClient(context);
+    const groups = await gp
+      .api("/groups")
+      .filter("securityEnabled eq true") // only security-enabled groups
+      .top(999)
+      .get();
+
+    const groupsArray = groups.value.map((g: any) => ({
+      id: g.id,
+      value: g.displayName,
+      label: `${g.displayName} (Group)`,  // 👈 show type in dropdown
+      mail: g.mail,
+      type: "Group"
+    }));
+
+    // 🔹 Merge Users + Groups into one array
+    const combinedArray = [...usersArray, ...groupsArray];
+
+    console.log("Combined Users + Groups:", combinedArray);
+    setUser(combinedArray);  // reuse same state
+  } catch (error) {
+    console.error("Error fetching users/groups:", error);
   }
+};
+
 
   // handle entity Select
   const handleEntitySelect=async(selectedEntity:any)=>{
       console.log("selectedEntity",selectedEntity);
       selectedEntityForPermission=selectedEntity;
+
+      //get site name 
+ console.log("selectedEntity", selectedEntity);
+  selectedEntityForPermission = selectedEntity;
+
+  try {
+    // Get sites from DMSFolderMaster
+    const items = await sp.web.lists.getByTitle("DMSFolderMaster")
+      .items.filter(`SiteTitle eq '${selectedEntity.value}' and IsSite eq 'Yes'`)(); 
+
+    console.log("Sites from DMSFolderMaster", items);
+
+    // Transform to dropdown format
+    const siteDropdownOptions = items.map((item: any) => ({
+      value: item.DocumentLibraryName,
+      label: item.DocumentLibraryName,
+    }));
+
+    setSiteOptions(siteDropdownOptions);
+  } catch (error) {
+    console.error("Error fetching sites from DMSFolderMaster", error);
+  }
+
+      // get site name 
       const subsiteContext = await sp.site.openWebById(selectedEntity.SiteID);
       if(IsSuperAdmin){
         try {
@@ -667,6 +752,176 @@ siteUrl: string;
       setShowGroupsTable("Yes");
   }
 
+  //handle site name 
+  const handleSiteSelect = async (selectedSite: any) => {
+  console.log("Selected Site", selectedSite);
+   setSelectedSiteForPermission(selectedSite); // <-- Save it here
+  // selectedSiteForPermission = selectedSite; 
+   const items = await sp.web.lists.getByTitle("DMSFolderMaster")
+      .items.filter(`DocumentLibraryName eq '${selectedSite.value}' and IsSubsite eq 'Yes'`)(); 
+
+    console.log("SubSites from DMSFolderMaster", items);
+
+       // Transform to dropdown format
+    const siteDropdownOptions = items.map((item: any) => ({
+      value: item.FolderName,
+      label: item.FolderName,
+    }));
+
+    setSubSiteOptions(siteDropdownOptions);
+
+  try {
+    const subsiteContext = await sp.site.openWebById(selectedEntityForPermission.SiteID);
+
+    // Construct group names like DocumentLibraryName_Admin, _Read, _Contribute, _Approval
+    const groupNames = [
+      `${selectedSite.value}_Admin`,
+      `${selectedSite.value}_Read`,
+      `${selectedSite.value}_Contribute`,
+      `${selectedSite.value}_Approval`,
+    ];
+
+    let filteredRoles: any[] = [];
+    usersFromGroups = [];
+
+    for (let groupName of groupNames) {
+      try {
+        const group = await subsiteContext.web.siteGroups.getByName(groupName)();
+        
+        // Determine permission & description
+        let permission = "Unknown";
+        let description = "Unknown role";
+        if (groupName.includes("_Admin")) {
+          permission = "Admin";
+          description = "Full Control - Has full control.";
+        } else if (groupName.includes("_Contribute")) {
+          permission = "Contribute";
+          description = "Can view, add, update, and download documents.";
+        } else if (groupName.includes("_Read")) {
+          permission = "Read";
+          description = "Can view pages and download documents.";
+        } else if (groupName.includes("_Approval")) {
+          permission = "Approval";
+          description = "Can approve and manage requests.";
+        }
+
+        // Push role info
+        filteredRoles.push({
+          value: group.Title,
+          label: group.Title,
+          Id: group.Id,
+          permission,
+          Description: description,
+        });
+
+        // Fetch users in this group
+        const users = await subsiteContext.web.siteGroups.getByName(groupName).users();
+        users.forEach((user) => {
+          usersFromGroups.push({
+            user: user.Title,
+            email: user.Email,
+            groupName: groupName,
+            permission,
+            Descirption: description,
+            userId: user.Id,
+          });
+        });
+
+      } catch (err) {
+        console.warn(`Group ${groupName} not found in ${selectedSite.value}`);
+      }
+    }
+
+    console.log("filteredRoles (site based)", filteredRoles);
+    console.log("usersFromGroups (site based)", usersFromGroups);
+
+    setGroups(filteredRoles);
+    setAllUsersFromGroups(usersFromGroups);
+    setShowGroupsTable("Yes");
+
+  } catch (error) {
+    console.error("Error fetching groups for selected site", error);
+  }
+};
+
+   
+ //handle subsite name 
+ const handleSubsiteSelect = async (selectedSubsite: any) => {
+  console.log("Selected Subsite", selectedSubsite);
+  setSelectedSubsiteForPermission(selectedSubsite);
+ try {
+    const subsiteContext = await sp.site.openWebById(selectedEntityForPermission.SiteID);
+
+    // Construct group names like DocumentLibraryName_Admin, _Read, _Contribute, _Approval
+    const groupNames = [
+      `${selectedSubsite.value}_Admin`,
+      `${selectedSubsite.value}_Read`,
+      `${selectedSubsite.value}_Contribute`,
+      `${selectedSubsite.value}_Approval`,
+    ];
+
+    let filteredRoles: any[] = [];
+    usersFromGroups = [];
+
+    for (let groupName of groupNames) {
+      try {
+        const group = await subsiteContext.web.siteGroups.getByName(groupName)();
+        
+        // Determine permission & description
+        let permission = "Unknown";
+        let description = "Unknown role";
+        if (groupName.includes("_Admin")) {
+          permission = "Admin";
+          description = "Full Control - Has full control.";
+        } else if (groupName.includes("_Contribute")) {
+          permission = "Contribute";
+          description = "Can view, add, update, and download documents.";
+        } else if (groupName.includes("_Read")) {
+          permission = "Read";
+          description = "Can view pages and download documents.";
+        } else if (groupName.includes("_Approval")) {
+          permission = "Approval";
+          description = "Can approve and manage requests.";
+        }
+
+        // Push role info
+        filteredRoles.push({
+          value: group.Title,
+          label: group.Title,
+          Id: group.Id,
+          permission,
+          Description: description,
+        });
+
+        // Fetch users in this group
+        const users = await subsiteContext.web.siteGroups.getByName(groupName).users();
+        users.forEach((user) => {
+          usersFromGroups.push({
+            user: user.Title,
+            email: user.Email,
+            groupName: groupName,
+            permission,
+            Descirption: description,
+            userId: user.Id,
+          });
+        });
+
+      } catch (err) {
+        console.warn(`Group ${groupName} not found in ${selectedSubsite.value}`);
+      }
+    }
+
+    console.log("filteredRoles (site based)", filteredRoles);
+    console.log("usersFromGroups (site based)", usersFromGroups);
+
+    setGroups(filteredRoles);
+    setAllUsersFromGroups(usersFromGroups);
+    setShowGroupsTable("Yes");
+
+  } catch (error) {
+    console.error("Error fetching groups for selected site", error);
+  }
+ }
   //  handle groups select
   const handleGroupsSelect=async(selectedGrous:any)=>{
     // Set selected groups start
@@ -707,45 +962,80 @@ siteUrl: string;
         selectedUsersForPermission=selectedUser;
   }
 
-  const handleAddUsers=async()=>{
-      console.log("selectedUsersForPermission",selectedUsersForPermission);
-      console.log("selectedGropuForPermission",selectedGropuForPermission);
-      console.log("selectedEntityForPermission",selectedEntityForPermission);
+//   const handleAddUsers=async()=>{
+//       console.log("selectedUsersForPermission",selectedUsersForPermission);
+//       console.log("selectedGropuForPermission",selectedGropuForPermission);
+//       console.log("selectedEntityForPermission",selectedEntityForPermission);
 
-      if(selectedUsersForPermission === undefined || selectedUsersForPermission.length === 0){
-        checkValidation();
-        return;
-      }
-      if(selectedGropuForPermission === undefined){
-        checkValidation();
-        return;
-      }
-      if(selectedEntityForPermission === undefined){
-        checkValidation();
-        return;
-      }
+//       if(selectedUsersForPermission === undefined || selectedUsersForPermission.length === 0){
+//         checkValidation();
+//         return;
+//       }
+//       if(selectedGropuForPermission === undefined){
+//         checkValidation();
+//         return;
+//       }
+//       if(selectedEntityForPermission === undefined){
+//         checkValidation();
+//         return;
+//       }
       
+//   const subsiteContext = await sp.site.openWebById(selectedEntityForPermission.SiteID);
+//   //wait for all add operations to complete
+//   const addUsersPromises = selectedUsersForPermission.map(async (user: any) => {
+//       try {
+//           const userObj = await sp.web.ensureUser(user.email);
+//           console.log("userObj", userObj);
+//           const users = await subsiteContext.web.siteGroups.getByName(`${selectedGropuForPermission.value}`).users.add(userObj.data.LoginName);
+//           console.log(`${user.email} added to the group successfully.`, users);
+//       } catch (error) {
+//           console.error(`Failed to add ${user.email} to the group: `, error);
+//       }
+//   });
+
+//   await Promise.all(addUsersPromises);
+//   onSuccess(selectedGropuForPermission.value);
+//   // Call handleEntitySelect once all users have been added
+//   // to refresh the user table
+//   // handleEntitySelect(selectedEntityForPermission);
+//   // selectedUsersForPermission=undefined;
+//   handleGroupsSelect(selectedGropuForPermission);
+// }
+const handleAddUsers = async () => {
+  if (!selectedUsersForPermission?.length) {
+    checkValidation();
+    return;
+  }
+
   const subsiteContext = await sp.site.openWebById(selectedEntityForPermission.SiteID);
-  //wait for all add operations to complete
-  const addUsersPromises = selectedUsersForPermission.map(async (user: any) => {
-      try {
-          const userObj = await sp.web.ensureUser(user.email);
-          console.log("userObj", userObj);
-          const users = await subsiteContext.web.siteGroups.getByName(`${selectedGropuForPermission.value}`).users.add(userObj.data.LoginName);
-          console.log(`${user.email} added to the group successfully.`, users);
-      } catch (error) {
-          console.error(`Failed to add ${user.email} to the group: `, error);
+
+  const addEntities = selectedUsersForPermission.map(async (item: any) => {
+    try {
+      if (item.type === "User") {
+        // ✅ Add User
+        const userObj = await sp.web.ensureUser(item.email);
+        await subsiteContext.web.siteGroups
+          .getByName(`${selectedGropuForPermission.value}`)
+          .users.add(userObj.data.LoginName);
+
+        console.log(`User ${item.email} added successfully.`);
+      } else if (item.type === "Group") {
+        // ✅ Add Group
+        const groupObj = await sp.web.ensureUser(item.mail || item.value);
+        await subsiteContext.web.siteGroups
+          .getByName(`${selectedGropuForPermission.value}`)
+          .users.add(groupObj.data.LoginName);
+
+        console.log(`Group ${item.value} added successfully.`);
       }
+    } catch (error) {
+      console.error(`Failed to add ${item.value}: `, error);
+    }
   });
 
-  await Promise.all(addUsersPromises);
-  onSuccess(selectedGropuForPermission.value);
-  // Call handleEntitySelect once all users have been added
-  // to refresh the user table
-  // handleEntitySelect(selectedEntityForPermission);
-  // selectedUsersForPermission=undefined;
-  handleGroupsSelect(selectedGropuForPermission);
-}
+  await Promise.all(addEntities);
+  onSuccess(selectedGropuForPermission?.value);
+};
 
   const hanldeManagePermission=()=>{
     if(selectedGroupUsers === undefined && selectedGropuForPermission === undefined){
@@ -1097,20 +1387,28 @@ const Pagination = ( { currentPage, totalPages, handlePageChange }: PaginationPr
               </div>
                </div>) : (
                 <div className="position-relative">
-                  {activeComponent === 'Create Location' && (
+                  {/* {activeComponent === 'Create Site Collection - (Location)' && ( */}
+                  {activeComponent === 'Create Entity' && (
                     <div>
                       <button className="btn back-to-admin" onClick={()=>handleReturnToMain('')}> Back to Home </button>
-                      <CreateEntity/>
+                      <CreateEntity />
                     </div>
                
                   )} 
-                    {activeComponent === 'Manage user permission' && (
-                                      <div>
-                                        <button className="btn back-to-admin" onClick={()=>handleReturnToMain('')}> Back to Home </button>
-                                        <Manageuserpermissioninonego/>
-                                      </div>
-                                 
-                                    )} 
+                  {activeComponent === 'Create Site - (Department)' && (
+                    <div>
+                      <button className="btn back-to-admin" onClick={()=>handleReturnToMain('')}> Back to Home </button>
+                      <Site context={context} />
+                    </div>
+               
+                  )} 
+                  {activeComponent === 'Manage user permission' && (
+                    <div>
+                      <button className="btn back-to-admin" onClick={()=>handleReturnToMain('')}> Back to Home </button>
+                      <Manageuserpermissioninonego/>
+                    </div>
+               
+                  )} 
                   {activeComponent === 'Create Division' && (
                     <div className="position-relative">
                       <button className="btn back-to-admin" onClick={()=>handleReturnToMain('')}> Back to Home </button>
@@ -1157,7 +1455,7 @@ const Pagination = ( { currentPage, totalPages, handlePageChange }: PaginationPr
                         </a>
                     </div>
                     )}
-                    <div className="col-sm-3 col-md-3 mt-2">
+                      <div className="col-sm-3 col-md-3 mt-2">
                           <a href="">
                                   <div className="card-master box1" onClick={(event)=>
                                     {
@@ -1175,6 +1473,20 @@ const Pagination = ( { currentPage, totalPages, handlePageChange }: PaginationPr
                           <a href="">
                                   <div className="card-master box1" onClick={(event)=>
                                     {
+                                      handleToggleCard(event,"Yes")
+                                    }
+                                    }>
+                                    <div className="icon">
+                                      <img className="CardImage"  src={manageUserAndPermissionImage}/>
+                                    </div>
+                                    <p className="text-dark">Manage Site Permissions</p>
+                                  </div>
+                          </a>
+                      </div>
+                    <div className="col-sm-3 col-md-3 mt-2">
+                          <a href="">
+                                  <div className="card-master box1" onClick={(event)=>
+                                    {
                                       handleToggleCard(event,"Manage Folder Deligation")
                                     }
                                     }>
@@ -1185,6 +1497,23 @@ const Pagination = ( { currentPage, totalPages, handlePageChange }: PaginationPr
                                   </div>
                           </a>
                       </div>
+                    {/* <div className="col-sm-3 col-md-3 mt-2">
+                          <a href="">
+                                  <div className="card-master box1" 
+                                   onClick={() =>
+    window.open(
+      "https://app.powerbi.com/groups/me/reports/fe6335df-a380-4f3f-8f5a-1c143c360d2d/a88cdbf079168bb36e5a?experience=power-bi",
+      "_blank"
+    )
+  }
+                                  >
+                                    <div className="icon">
+                                      <img className="CardImage"  src={useraceessreport}/>
+                                    </div>
+                                    <p className="text-dark">Manage Folder Deligation</p>
+                                  </div>
+                          </a>
+                      </div> */}
                   </div>
                   </div>
                ) :(
@@ -1205,7 +1534,7 @@ const Pagination = ( { currentPage, totalPages, handlePageChange }: PaginationPr
                 
                     marginTop:"70px",
                     padding:"20px",
-                    border:"2px solid #54ade0",
+                    border:"2px solid #7fc4de",
                     borderRadius:"20px",
                     background:"#fff",
                     clear:"both",
@@ -1215,19 +1544,39 @@ const Pagination = ( { currentPage, totalPages, handlePageChange }: PaginationPr
                   }}>
                   <p className="font-20" style={{ 
                 
-                  }}>Manage Users And Permission</p>
+                  }}>Manage Site Permissions</p>
                   <div className="row">
                     <div className="col-sm-4">
-                      <label>Location</label>
+                      <label>Site Collection - (Location)</label>
                       <Select                        
                           options={adminPermissionEntity}
                           onChange={(selected: any) =>
                             handleEntitySelect(selected)
                           }
-                          placeholder="Select Location..."
-                          noOptionsMessage={() => "No Location Found..."}
+                          placeholder="Select Site Collection - (Location)..."
+                          noOptionsMessage={() => "No Site Collection - (Location) Found..."}
                         />
                     </div>
+                    <div className="col-sm-4">
+  <label>Select Site - (Department)</label>
+  <Select
+    options={siteOptions}
+    onChange={(selected: any) => handleSiteSelect(selected)}
+    placeholder="Select Site..."
+    noOptionsMessage={() => "No Site Found..."}
+  />
+                    </div>
+                     
+                      <div className="col-sm-4">
+  <label>Select SubSite - (Section)</label>
+  <Select
+    options={SubsiteOptions}
+    onChange={(selected: any) => handleSubsiteSelect(selected)}
+    placeholder="Select Site..."
+    noOptionsMessage={() => "No Site Found..."}
+  />
+                    </div>
+
                     <div className="col-sm-4">
                       <label>Groups</label>
                       <Select
@@ -1272,10 +1621,20 @@ const Pagination = ( { currentPage, totalPages, handlePageChange }: PaginationPr
                                           
                       <div style={{padding:'15px',clear:'both', float:'left', marginTop:'15px'}} className={styles.container}>
                       <header style={{padding:'0px 0px 5px 0px'}}>
-                      <div className='page-title fw-bold mb-1 font-20'>{selectedEntityForPermission.value} &gt; {groupDetails?.value && groupDetails?.value.includes('_') 
+                      {/* <div className='page-title fw-bold mb-1 font-20'>{selectedEntityForPermission.value} &gt; {groupDetails?.value && groupDetails?.value.includes('_') 
                                 ? groupDetails?.value.split('_')[1] 
                                 : groupDetails?.value || ''} &gt; Details
-                      </div>
+                      </div> */}
+                      <div className='page-title fw-bold mb-1 font-20'>
+  {selectedEntityForPermission?.value} 
+  {selectedSiteForPermission ? ` > ${selectedSiteForPermission.value}` : ''} 
+  {groupDetails?.value 
+    ? ` > ${groupDetails.value.includes('_') 
+        ? groupDetails.value.split('_')[1] 
+        : groupDetails.value}` 
+    : ''} 
+  &gt; Details
+</div>
                       </header>
                       <table className='mtbalenew'>
 
@@ -1304,13 +1663,24 @@ const Pagination = ( { currentPage, totalPages, handlePageChange }: PaginationPr
                   {showGroupsUsers ==="Yes" && (<>
                     <div style={{padding:'15px',clear:'both', float:'left', marginTop:'15px'}} className={styles.container}>
                       <header style={{padding:'0px 0px 5px 0px'}}>
-                        <div className='page-title fw-bold mb-1 font-20'>
+                        {/* <div className='page-title fw-bold mb-1 font-20'>
                           {selectedEntityForPermission.value} &gt; 
                             {groupDetails.value && groupDetails.value.includes('_') 
                             ? groupDetails.value.split('_')[1] 
                             : groupDetails.value || ''}
                            &gt; Users
-                        </div>
+                        </div> */}
+                        <div className='page-title fw-bold mb-1 font-20'>
+  {selectedEntityForPermission?.value} 
+  {selectedSiteForPermission ? ` > ${selectedSiteForPermission.value}` : ''} 
+  {groupDetails?.value 
+    ? ` > ${groupDetails.value.includes('_') 
+        ? groupDetails.value.split('_')[1] 
+        : groupDetails.value}` 
+    : ''} 
+  &gt; Users
+</div>
+
                       </header>
                       <table className='mtbalenew'>
 

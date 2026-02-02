@@ -21,8 +21,7 @@ import styles from './Form.module.scss'
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../../CustomCss/mainCustom.scss";
 // import "../../verticalSideBar/components/VerticalSidebar.scss"
-// import CreateEntity from './CreateMaster';
-import CreateEntity from './CreateMasterDemo';
+import CreateEntity from './CreateMaster';
 import { format } from '@fluentui/react';
 import { faSort } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -322,7 +321,7 @@ const Entity = () => {
         <div className={styles.argform}>
           <div className='row'>
             <div className='col-md-7 pt-0'>
-            <div className='page-title fw-bold mb-1 font-20'>Location</div>
+            <div className='page-title fw-bold mb-1 font-20'>Site Collection - (Location)</div>
             </div>
             <div className='col-md-5'>
             <div className="padd-right1 mt-0">
@@ -431,7 +430,7 @@ const Entity = () => {
                   <th className="" >
                   
                     <div className="pb-0" >
-                      <span >Title</span> &nbsp;
+                      <span >site collection</span> &nbsp;
                       <span className="Sorting" onClick={() => handleSortChange('Title')}>
                         <FontAwesomeIcon icon={faSort} /> 
                       </span>
@@ -589,7 +588,7 @@ const Entity = () => {
         <div className={styles.argform}>
           <div style={{marginBottom:"20px"}} className='row'>
             <div className='col-md-7'>
-            <div className='page-title fw-bold mb-1 font-20'>Create Location</div>
+            <div className='page-title fw-bold mb-1 font-20'>Create Site Collection - (Location)</div>
             </div>
             <div className='col-md-5'>
              <div className='padd-right1 mt-0'>

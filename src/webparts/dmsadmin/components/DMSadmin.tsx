@@ -624,7 +624,7 @@ const handleReturnToMain = (Name:any) => {
                     marginLeft:"50px",
                     marginTop:"50px",
                     padding:"20px",
-                    border:"2px solid #2c9942",
+                    border:"2px solid #7fc4de",
                     borderRadius:"10px",
                     background:"#fff",
 
@@ -737,7 +737,7 @@ const handleReturnToMain = (Name:any) => {
                     marginLeft:"50px",
                     marginTop:"50px",
                     padding:"20px",
-                    border:"2px solid #2c9942",
+                    border:"2px solid #7fc4de",
                     borderRadius:"10px",
                     background:"#fff",
 
