@@ -628,12 +628,377 @@
 
 
 // new component for user permission management in one go
+// import * as React from "react";
+// import { DefaultButton } from "@fluentui/react";
+// import { Modal } from "@fluentui/react/lib/Modal";
+// import { TextField, PrimaryButton, DetailsList, IColumn, IDetailsHeaderProps } from "@fluentui/react";
+
+
+// import { SPFI } from "@pnp/sp";
+// import { getSP } from "../loc/pnpjsConfig";
+// import './Manageuserpermissioninonego.css'
+// import "@pnp/sp/webs";
+// import "@pnp/sp/folders";
+// import "@pnp/sp/files";
+// import "@pnp/sp/sites"
+// import "@pnp/sp/presets/all"
+// import "@pnp/sp/site-groups";
+
+// export default function UserPermissionManager() {
+//   const [users, setUsers] = React.useState<any[]>([]);
+//   const [groups, setGroups] = React.useState<any[]>([]);
+//   const [selectedUser, setSelectedUser] = React.useState<any>(null);
+//   const [userGroups, setUserGroups] = React.useState<string[]>([]);
+//   const [isModalOpen, setIsModalOpen] = React.useState(false);
+//   const [loading, setLoading] = React.useState<boolean>(true);
+//   const [searchQuery, setSearchQuery] = React.useState("");
+//   const [searchText, setSearchText] = React.useState("");
+//   const sp: SPFI = getSP();
+
+//   React.useEffect(() => {
+//     loadData();
+//   }, []);
+
+//   const loadData = async () => {
+//     try {
+//       setLoading(true);
+
+//       const siteGroups = await sp.web.siteGroups.expand("Roles/RoleDefinitionBindings")();
+//       console.log("Fetched Groups:", siteGroups);
+      
+//       const groupsWithPermissions = await Promise.all(
+//         siteGroups.map(async (group) => {
+//           try {
+//             const roleAssignment: any = await sp.web.roleAssignments.filter(`PrincipalId eq ${group.Id}`)
+//               .expand("Member,RoleDefinitionBindings")();
+
+//             return {
+//               ...group,
+//               Permissions: roleAssignment.RoleDefinitionBindings.map(
+//                 (r: any) => r.Name
+//               ),
+//             };
+//           } catch (e) {
+//             console.error(`Error fetching permissions for group: ${group.Title}`, e);
+//             return { ...group, Permissions: [] };
+//           }
+//         })
+//       );
+
+//       console.log("Groups with Permissions:", groupsWithPermissions);
+//       setGroups(groupsWithPermissions);
+
+//       let userMap: any = {};
+//       await Promise.all(
+//         siteGroups.map(async (g) => {
+//           const grpUsers = await sp.web.siteGroups.getById(g.Id).users();
+//           grpUsers.forEach((u) => {
+//             if (!userMap[u.LoginName])
+//               userMap[u.LoginName] = { ...u, Groups: [] };
+//             userMap[u.LoginName].Groups.push(g.Title);
+//           });
+//         })
+//       );
+
+//       setUsers(Object.values(userMap));
+//     } catch (err) {
+//       console.error("Error loading user/group data", err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const openManageModal = (user: any) => {
+//     setSelectedUser(user);
+//     setUserGroups(user.Groups);
+//     setIsModalOpen(true);
+//   };
+
+//   const toggleGroup = (group: string, checked?: boolean) => {
+//     if (checked) {
+//       setUserGroups((prev) => [...prev, group]);
+//     } else {
+//       setUserGroups((prev) => prev.filter((g) => g !== group));
+//     }
+//   };
+
+//   const saveChanges = async () => {
+//     if (!selectedUser) return;
+//     try {
+//       setLoading(true);
+
+//       const oldGroups = selectedUser.Groups;
+//       const added = userGroups.filter((g) => !oldGroups.includes(g));
+//       const removed = oldGroups.filter((g: any) => !userGroups.includes(g));
+
+//       await Promise.all(
+//         added.map((g) =>
+//           sp.web.siteGroups.getByName(g).users.add(selectedUser.LoginName)
+//         )
+//       );
+//       await Promise.all(
+//         removed.map((g: any) =>
+//           sp.web.siteGroups.getByName(g).users.removeByLoginName(
+//             selectedUser.LoginName
+//           )
+//         )
+//       );
+
+//       setIsModalOpen(false);
+//       loadData();
+//     } catch (err) {
+//       console.error("Error updating permissions", err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Keep the original users list (no filtering)
+//   const filteredUsers = users; // Remove the filter logic
+
+//   const columns: IColumn[] = [
+//     {
+//       key: "user",
+//       name: "User",
+//       fieldName: "Title",
+//       minWidth: 120,
+//       maxWidth: 150,
+//       isMultiline: false,
+//     },
+//     {
+//       key: "email",
+//       name: "Email",
+//       fieldName: "Email",
+//       minWidth: 200,
+//       maxWidth: 250,
+//       isMultiline: false,
+//     },
+//     {
+//       key: "groups",
+//       name: "Groups",
+//       fieldName: "Groups",
+//       minWidth: 400,
+//       isMultiline: true,
+//       onRender: (item: any) => item.Groups.join(", "),
+//     },
+//     {
+//       key: "action",
+//       name: "Action",
+//       minWidth: 100,
+//       maxWidth: 120,
+//       onRender: (item: any) => (
+//         <PrimaryButton
+//           text="Manage"
+//           style={{ backgroundColor: "#7fc4de", border: "none" }}
+//           onClick={() => openManageModal(item)}
+//         />
+//       ),
+//     },
+//   ];
+
+//   // Custom header with just the input field display (no filtering)
+// const onRenderDetailsHeader = (props?: IDetailsHeaderProps, defaultRender?: any) => {
+//   if (!props) return <></>;
+
+//   // Render custom header
+//   return (
+//     <div style={{ display: "flex" }}>
+//       {props.columns.map((col) => {
+//         if (col.key === "user") {
+//           return (
+//             <div
+//               key={col.key}
+//               style={{ minWidth: col.minWidth, maxWidth: col.maxWidth, padding: "4px" }}
+//             >
+//               <span>{col.name}</span>
+//               <TextField
+//                 placeholder="Seach users..."
+//                 styles={{ root: { marginTop: 4 } }}
+//                 onChange={() => {}}
+//               />
+//             </div>
+//           );
+//         }
+
+//         // Default column header
+//         return (
+//           <div
+//             key={col.key}
+//             style={{ minWidth: col.minWidth, maxWidth: col.maxWidth, padding: "4px" }}
+//           >
+//             {col.name}
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// };
+
+
+//   return (
+//     <div>
+//       <h2>User Permissions</h2>
+
+//       {loading ? (
+//         <div className="loader-center">
+//     <img
+//       // src={require("../assets/ESSAROLLER.gif")}
+//       src={require("../assets/ESSAROLLER2.gif")}
+//       className="alignrightl"
+//       alt="Loading..."
+//     />
+//     <span id="loader">Loading user permissions...</span>
+//   </div>
+//         // <div>
+//         //   <img
+//         //     src={require("../assets/ESSAROLLER.gif")}
+//         //     className="alignrightl"
+//         //     alt="Loading..."
+//         //   />
+//         //   <span id="loader">Loading user permissions...</span>
+//         // </div>
+//       ) : (
+//         // <DetailsList
+//         //   items={users} // Use original users array (no filtering)
+//         //   columns={columns}
+//         //   onRenderDetailsHeader={onRenderDetailsHeader}
+//         // />
+//         <DetailsList
+//   items={users}
+//   columns={columns}
+//   onRenderDetailsHeader={onRenderDetailsHeader}
+//   selectionMode={0}
+// />
+//       )}
+
+//       <Modal isOpen={isModalOpen} onDismiss={() => setIsModalOpen(false)}>
+//         <div style={{ width: "800px", minHeight: "500px", padding: "20px" }}>
+//           <div style={{ marginTop: 20, textAlign: "right" }}>
+//             <DefaultButton text="Close" onClick={() => setIsModalOpen(false)} />
+//           </div>
+//           <h3>Manage Permissions for {selectedUser?.Title}</h3>
+
+//           <div style={{ display: "flex", gap: "20px" }}>
+//             <div style={{ flex: 1 }}>
+//               <h4>Current Groups</h4>
+//               {userGroups.length > 0 ? (
+//                 userGroups.map((g) => {
+//                   const groupObj = groups.find((grp) => grp.Title === g);
+//                   const permission =
+//                     groupObj?.Roles?.[0]?.RoleDefinitionBindings?.[0]?.Name || "N/A";
+
+//                   return (
+//                     <div
+//                       key={g}
+//                       style={{
+//                         display: "flex",
+//                         justifyContent: "space-between",
+//                         alignItems: "center",
+//                         marginBottom: 6,
+//                         padding: "4px 8px",
+//                         background: "#f3f2f1",
+//                         borderRadius: 4,
+//                       }}
+//                     >
+//                       <span>
+//                         <strong>{g}</strong> 
+//                       </span>
+//                       <DefaultButton
+//                         text="Remove"
+//                         onClick={async () => {
+//                           try {
+//                             await sp.web.siteGroups
+//                               .getByName(g)
+//                               .users.removeByLoginName(selectedUser.LoginName);
+
+//                             setUserGroups((prev) => prev.filter((grp) => grp !== g));
+//                           } catch (err) {
+//                             console.error("Error removing user:", err);
+//                           }
+//                         }}
+//                       />
+//                     </div>
+//                   );
+//                 })
+//               ) : (
+//                 <p style={{ fontStyle: "italic", color: "gray" }}>
+//                   User does not belong to any groups.
+//                 </p>
+//               )}
+//             </div>
+
+//             <div style={{ flex: 1 }}>
+//               <h4>Available Groups</h4>
+//               <div style={{ marginBottom: "12px" }}>
+//                 <input
+//                   type="text"
+//                   placeholder="Search By Site Name"
+//                   style={{
+//                     width: "100%",
+//                     padding: "8px",
+//                     borderRadius: 4,
+//                     border: "1px solid #ccc",
+//                   }}
+//                   onChange={(e) => setSearchQuery(e.target.value)}
+//                 />
+//               </div>
+
+//               {groups
+//                 .filter(
+//                   (g) =>
+//                     !userGroups.includes(g.Title) &&
+//                     g.Title.toLowerCase().includes(searchQuery.toLowerCase())
+//                 )
+//                 .map((g) => {
+//                   const permission =
+//                     g?.Roles?.[0]?.RoleDefinitionBindings?.[0]?.Name || "N/A";
+
+//                   return (
+//                     <div
+//                       key={g.Id}
+//                       style={{
+//                         display: "flex",
+//                         justifyContent: "space-between",
+//                         alignItems: "center",
+//                         marginBottom: 6,
+//                         padding: "4px 8px",
+//                         border: "1px solid #ddd",
+//                         borderRadius: 4,
+//                       }}
+//                     >
+//                       <span>
+//                         <strong>{g.Title}</strong> 
+//                       </span>
+//                       <PrimaryButton
+//                         text="Add"
+//                         style={{ backgroundColor: "#7fc4de", border: "none" }}
+//                         onClick={async () => {
+//                           try {
+//                             await sp.web.siteGroups
+//                               .getByName(g.Title)
+//                               .users.add(selectedUser.LoginName);
+
+//                             setUserGroups((prev) => [...prev, g.Title]);
+//                           } catch (err) {
+//                             console.error("Error adding user:", err);
+//                           }
+//                         }}
+//                       />
+//                     </div>
+//                   );
+//                 })}
+//             </div>
+//           </div>
+//         </div>
+//       </Modal>
+//     </div>
+//   );
+// }
+
 import * as React from "react";
 import { DefaultButton } from "@fluentui/react";
 import { Modal } from "@fluentui/react/lib/Modal";
-import { TextField, PrimaryButton, DetailsList, IColumn, IDetailsHeaderProps } from "@fluentui/react";
-
-
+import { TextField, PrimaryButton, DetailsList, IColumn, IDetailsHeaderProps, SelectionMode, CheckboxVisibility } from "@fluentui/react";
 import { SPFI } from "@pnp/sp";
 import { getSP } from "../loc/pnpjsConfig";
 import './Manageuserpermissioninonego.css'
@@ -645,14 +1010,14 @@ import "@pnp/sp/presets/all"
 import "@pnp/sp/site-groups";
 
 export default function UserPermissionManager() {
-  const [users, setUsers] = React.useState<any[]>([]);
-  const [groups, setGroups] = React.useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = React.useState<any>(null);
-  const [userGroups, setUserGroups] = React.useState<string[]>([]);
+  const [users, setUsers] = React.useState([]);
+  const [groups, setGroups] = React.useState([]);
+  const [selectedUser, setSelectedUser] = React.useState(null);
+  const [userGroups, setUserGroups] = React.useState([]);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState<boolean>(true);
+  const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [searchText, setSearchText] = React.useState("");
+  const [tableSearchText, setTableSearchText] = React.useState("");
   const sp: SPFI = getSP();
 
   React.useEffect(() => {
@@ -662,16 +1027,14 @@ export default function UserPermissionManager() {
   const loadData = async () => {
     try {
       setLoading(true);
-
       const siteGroups = await sp.web.siteGroups.expand("Roles/RoleDefinitionBindings")();
       console.log("Fetched Groups:", siteGroups);
-      
+
       const groupsWithPermissions = await Promise.all(
         siteGroups.map(async (group) => {
           try {
             const roleAssignment: any = await sp.web.roleAssignments.filter(`PrincipalId eq ${group.Id}`)
               .expand("Member,RoleDefinitionBindings")();
-
             return {
               ...group,
               Permissions: roleAssignment.RoleDefinitionBindings.map(
@@ -693,8 +1056,7 @@ export default function UserPermissionManager() {
         siteGroups.map(async (g) => {
           const grpUsers = await sp.web.siteGroups.getById(g.Id).users();
           grpUsers.forEach((u) => {
-            if (!userMap[u.LoginName])
-              userMap[u.LoginName] = { ...u, Groups: [] };
+            if (!userMap[u.LoginName]) userMap[u.LoginName] = { ...u, Groups: [] };
             userMap[u.LoginName].Groups.push(g.Title);
           });
         })
@@ -714,33 +1076,37 @@ export default function UserPermissionManager() {
     setIsModalOpen(true);
   };
 
-  const toggleGroup = (group: string, checked?: boolean) => {
-    if (checked) {
-      setUserGroups((prev) => [...prev, group]);
-    } else {
-      setUserGroups((prev) => prev.filter((g) => g !== group));
+  const removeAllGroups = async () => {
+    if (!selectedUser || userGroups.length === 0) return;
+    
+    try {
+      await Promise.all(
+        userGroups.map((g) =>
+          sp.web.siteGroups.getByName(g).users.removeByLoginName(selectedUser.LoginName)
+        )
+      );
+      setUserGroups([]);
+    } catch (err) {
+      console.error("Error removing all groups:", err);
     }
   };
 
   const saveChanges = async () => {
     if (!selectedUser) return;
+
     try {
       setLoading(true);
-
       const oldGroups = selectedUser.Groups;
       const added = userGroups.filter((g) => !oldGroups.includes(g));
       const removed = oldGroups.filter((g: any) => !userGroups.includes(g));
 
       await Promise.all(
-        added.map((g) =>
-          sp.web.siteGroups.getByName(g).users.add(selectedUser.LoginName)
-        )
+        added.map((g) => sp.web.siteGroups.getByName(g).users.add(selectedUser.LoginName))
       );
+
       await Promise.all(
         removed.map((g: any) =>
-          sp.web.siteGroups.getByName(g).users.removeByLoginName(
-            selectedUser.LoginName
-          )
+          sp.web.siteGroups.getByName(g).users.removeByLoginName(selectedUser.LoginName)
         )
       );
 
@@ -753,16 +1119,30 @@ export default function UserPermissionManager() {
     }
   };
 
-  // Keep the original users list (no filtering)
-  const filteredUsers = users; // Remove the filter logic
+  // Filter users based on search
+  const filteredUsers = React.useMemo(() => {
+    if (!tableSearchText) return users;
+    
+    const searchLower = tableSearchText.toLowerCase();
+    return users.filter((user: any) => {
+      const userName = (user.Title || "").toLowerCase();
+      const userEmail = (user.Email || "").toLowerCase();
+      const userGroups = (user.Groups || []).join(", ").toLowerCase();
+      
+      return userName.includes(searchLower) || 
+             userEmail.includes(searchLower) || 
+             userGroups.includes(searchLower);
+    });
+  }, [users, tableSearchText]);
 
   const columns: IColumn[] = [
     {
       key: "user",
       name: "User",
       fieldName: "Title",
-      minWidth: 120,
-      maxWidth: 150,
+      minWidth: 150,
+      maxWidth: 200,
+      isResizable: true,
       isMultiline: false,
     },
     {
@@ -770,223 +1150,209 @@ export default function UserPermissionManager() {
       name: "Email",
       fieldName: "Email",
       minWidth: 200,
-      maxWidth: 250,
+      maxWidth: 300,
+      isResizable: true,
       isMultiline: false,
     },
     {
       key: "groups",
-      name: "Groups",
+      name: "Group",
       fieldName: "Groups",
-      minWidth: 400,
+      minWidth: 300,
+      isResizable: true,
       isMultiline: true,
-      onRender: (item: any) => item.Groups.join(", "),
+      onRender: (item: any) => (
+        <div style={{ padding: '8px 0' }}>
+          {item.Groups.join(", ")}
+        </div>
+      ),
     },
     {
       key: "action",
       name: "Action",
       minWidth: 100,
       maxWidth: 120,
+      isResizable: false,
       onRender: (item: any) => (
-        <PrimaryButton
+        <DefaultButton
+          className="manage-button"
           text="Manage"
-          style={{ backgroundColor: "#7fc4de", border: "none" }}
           onClick={() => openManageModal(item)}
         />
       ),
     },
   ];
 
-  // Custom header with just the input field display (no filtering)
-const onRenderDetailsHeader = (props?: IDetailsHeaderProps, defaultRender?: any) => {
-  if (!props) return <></>;
-
-  // Render custom header
   return (
-    <div style={{ display: "flex" }}>
-      {props.columns.map((col) => {
-        if (col.key === "user") {
-          return (
-            <div
-              key={col.key}
-              style={{ minWidth: col.minWidth, maxWidth: col.maxWidth, padding: "4px" }}
-            >
-              <span>{col.name}</span>
-              <TextField
-                placeholder="Seach users..."
-                styles={{ root: { marginTop: 4 } }}
-                onChange={() => {}}
-              />
-            </div>
-          );
-        }
-
-        // Default column header
-        return (
-          <div
-            key={col.key}
-            style={{ minWidth: col.minWidth, maxWidth: col.maxWidth, padding: "4px" }}
-          >
-            {col.name}
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-
-  return (
-    <div>
-      <h2>User Permissions</h2>
-
+    <div className="user-permission-container">
+      <div className="page-header">
+        <h1>User Permissions</h1>
+        <div className="search-container">
+          <input
+            type="text"
+            className="table-search-input"
+            placeholder="Search by user name, email or group..."
+            value={tableSearchText}
+            onChange={(e) => setTableSearchText(e.target.value)}
+          />
+        </div>
+      </div>
+      
       {loading ? (
         <div className="loader-center">
-    <img
-      // src={require("../assets/ESSAROLLER.gif")}
-      src={require("../assets/ESSAROLLER2.gif")}
-      className="alignrightl"
-      alt="Loading..."
-    />
-    <span id="loader">Loading user permissions...</span>
-  </div>
-        // <div>
-        //   <img
-        //     src={require("../assets/ESSAROLLER.gif")}
-        //     className="alignrightl"
-        //     alt="Loading..."
-        //   />
-        //   <span id="loader">Loading user permissions...</span>
-        // </div>
+          <div>Loading user permissions...</div>
+        </div>
       ) : (
-        // <DetailsList
-        //   items={users} // Use original users array (no filtering)
-        //   columns={columns}
-        //   onRenderDetailsHeader={onRenderDetailsHeader}
-        // />
-        <DetailsList
-  items={users}
-  columns={columns}
-  onRenderDetailsHeader={onRenderDetailsHeader}
-  selectionMode={0}
-/>
+        <div className="table-wrapper">
+          <DetailsList
+            items={filteredUsers}
+            columns={columns}
+            selectionMode={SelectionMode.none}
+            checkboxVisibility={CheckboxVisibility.hidden}
+            compact={false}
+            isHeaderVisible={true}
+          />
+        </div>
       )}
 
-      <Modal isOpen={isModalOpen} onDismiss={() => setIsModalOpen(false)}>
-        <div style={{ width: "800px", minHeight: "500px", padding: "20px" }}>
-          <div style={{ marginTop: 20, textAlign: "right" }}>
-            <DefaultButton text="Close" onClick={() => setIsModalOpen(false)} />
+      <Modal
+        isOpen={isModalOpen}
+        onDismiss={() => setIsModalOpen(false)}
+        isBlocking={false}
+      >
+        <div className="modal-header">
+          <h2>Manage Permissions for {selectedUser?.Title}</h2>
+          {/* <button 
+            className="close-button"
+            onClick={() => setIsModalOpen(false)}
+          >
+            ×
+          </button> */}
+           <a style={{right:'45px'}}  className="close-button"   onClick={() => setIsModalOpen(false)}>
+                                   
+                                   
+     <img style={{width:'13px'}}
+       src={require("../assets/crosssvg.svg")}
+       alt="Clear"
+       className="search-icon"
+     />
+   </a>
+        </div>
+
+        <div className="modal-content">
+          {/* Current Groups Section */}
+          <div className="current-groups-header">
+            <h3>Current Groups</h3>
+            {userGroups.length > 0 && (
+              <button className="remove-all-button" onClick={removeAllGroups}>
+                <span><a >
+                                   
+                                   
+     <img style={{width:'13px'}}
+       src={require("../assets/crosssvg.svg")}
+       alt="Clear"
+       className="search-icon"
+     />
+   </a></span> Remove from All
+              </button>
+            )}
           </div>
-          <h3>Manage Permissions for {selectedUser?.Title}</h3>
 
-          <div style={{ display: "flex", gap: "20px" }}>
-            <div style={{ flex: 1 }}>
-              <h4>Current Groups</h4>
-              {userGroups.length > 0 ? (
-                userGroups.map((g) => {
-                  const groupObj = groups.find((grp) => grp.Title === g);
-                  const permission =
-                    groupObj?.Roles?.[0]?.RoleDefinitionBindings?.[0]?.Name || "N/A";
+          <div className="groups-container">
+            {userGroups.length > 0 ? (
+              userGroups.map((g) => (
+                <div key={g} className="group-pill">
+                  <span>{g}</span>
+                  <button
+                    className="remove-group-button"
+                    onClick={async () => {
+                      try {
+                        await sp.web.siteGroups
+                          .getByName(g)
+                          .users.removeByLoginName(selectedUser.LoginName);
+                        setUserGroups((prev) => prev.filter((grp) => grp !== g));
+                      } catch (err) {
+                        console.error("Error removing user:", err);
+                      }
+                    }}
+                  >
+                    Remove <span><a >
+                                   
+                                   
+     <img style={{width:'13px'}}
+       src={require("../assets/crosssvg.svg")}
+       alt="Clear"
+       className="search-icon"
+     />
+   </a> </span>
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="no-groups-message">
+                User does not belong to any groups.
+              </div>
+            )}
+          </div>
 
-                  return (
-                    <div
-                      key={g}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 6,
-                        padding: "4px 8px",
-                        background: "#f3f2f1",
-                        borderRadius: 4,
-                      }}
-                    >
-                      <span>
-                        <strong>{g}</strong> 
-                      </span>
-                      <DefaultButton
-                        text="Remove"
-                        onClick={async () => {
-                          try {
-                            await sp.web.siteGroups
-                              .getByName(g)
-                              .users.removeByLoginName(selectedUser.LoginName);
-
-                            setUserGroups((prev) => prev.filter((grp) => grp !== g));
-                          } catch (err) {
-                            console.error("Error removing user:", err);
-                          }
-                        }}
-                      />
-                    </div>
-                  );
-                })
-              ) : (
-                <p style={{ fontStyle: "italic", color: "gray" }}>
-                  User does not belong to any groups.
-                </p>
-              )}
+          {/* Available Groups Section */}
+          <div className="available-groups-section">
+            <h3>Available Groups</h3>
+            
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search By Site Name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                
+              />
+                 <a style={{ position: "absolute", right: "28px" , top: "3px" , width:'14px' }} >
+   
+                          <img
+                            src={require("../assets/searchicon.png")}
+                            alt="Search"
+                            className="search-icon"
+                            style={{width: "31px"}}
+                          />
+                        </a>
             </div>
 
-            <div style={{ flex: 1 }}>
-              <h4>Available Groups</h4>
-              <div style={{ marginBottom: "12px" }}>
-                <input
-                  type="text"
-                  placeholder="Search By Site Name"
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    borderRadius: 4,
-                    border: "1px solid #ccc",
-                  }}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
+            <div className="available-groups-list">
               {groups
                 .filter(
                   (g) =>
                     !userGroups.includes(g.Title) &&
                     g.Title.toLowerCase().includes(searchQuery.toLowerCase())
                 )
-                .map((g) => {
-                  const permission =
-                    g?.Roles?.[0]?.RoleDefinitionBindings?.[0]?.Name || "N/A";
-
-                  return (
-                    <div
-                      key={g.Id}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 6,
-                        padding: "4px 8px",
-                        border: "1px solid #ddd",
-                        borderRadius: 4,
+                .map((g) => (
+                  <div key={g.Title} className="available-group-pill">
+                    <span>{g.Title}</span>
+                    <button
+                      className="add-group-button"
+                      onClick={async () => {
+                        try {
+                          await sp.web.siteGroups
+                            .getByName(g.Title)
+                            .users.add(selectedUser.LoginName);
+                          setUserGroups((prev) => [...prev, g.Title]);
+                        } catch (err) {
+                          console.error("Error adding user:", err);
+                        }
                       }}
                     >
-                      <span>
-                        <strong>{g.Title}</strong> 
-                      </span>
-                      <PrimaryButton
-                        text="Add"
-                        style={{ backgroundColor: "#7fc4de", border: "none" }}
-                        onClick={async () => {
-                          try {
-                            await sp.web.siteGroups
-                              .getByName(g.Title)
-                              .users.add(selectedUser.LoginName);
-
-                            setUserGroups((prev) => [...prev, g.Title]);
-                          } catch (err) {
-                            console.error("Error adding user:", err);
-                          }
-                        }}
-                      />
-                    </div>
-                  );
-                })}
+                      Add <span><a >
+                                   
+                                   
+     <img style={{width:'13px'}}
+       src={require("../assets/addcircle.svg")}
+       alt="Clear"
+      
+     />
+   </a></span>
+                    </button>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
